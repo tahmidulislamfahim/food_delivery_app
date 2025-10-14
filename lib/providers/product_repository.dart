@@ -12,36 +12,28 @@ class ProductRepository {
   ProductRepository(this._client);
 
   Future<List<Product>> all({String? category}) async {
-    final res = await _client.rpc(
+    final data = await _client.rpc(
       'get_products',
       params: {'p_category': category},
-    );
-    final dyn = res as dynamic;
-    if (dyn.error != null) throw dyn.error;
-    final data = dyn.data as List<dynamic>;
+    ) as List<dynamic>;
     return data.map((e) => _mapToProduct(e)).toList();
   }
 
   Future<Product?> getById(String id) async {
-    final res = await _client
+    final data = await _client
         .from('products')
         .select()
         .match({'id': id})
-        .limit(1);
-    final dyn = res as dynamic;
-    if (dyn.error != null) throw dyn.error;
-    final data = dyn.data as List<dynamic>?;
-    if (data == null || data.isEmpty) return null;
+        .limit(1) as List<dynamic>;
+    if (data.isEmpty) return null;
     return _mapToProduct(data.first);
   }
 
   Future<List<Product>> search(String q) async {
     final trimmed = q.trim();
     if (trimmed.isEmpty) return all();
-    final res = await _client.rpc('search_products', params: {'p_q': trimmed});
-    final dyn = res as dynamic;
-    if (dyn.error != null) throw dyn.error;
-    final data = dyn.data as List<dynamic>;
+    final data = await _client
+        .rpc('search_products', params: {'p_q': trimmed}) as List<dynamic>;
     return data.map((e) => _mapToProduct(e)).toList();
   }
 
