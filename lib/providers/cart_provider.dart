@@ -31,72 +31,65 @@ class CartNotifier extends StateNotifier<CartState> {
   }
 
   Future<void> refresh() async {
-    final client = Supabase.instance.client;
-    final res = await client.rpc('get_active_cart');
-    final dyn = res as dynamic;
-    if (dyn.error != null) throw dyn.error;
-    final data = dyn.data as dynamic;
-    if (data == null) {
+    try {
+      final client = Supabase.instance.client;
+      final data = await client.rpc('get_active_cart') as dynamic;
+      if (data == null) {
+        state = CartState.empty();
+        return;
+      }
+      final cartId = data['cart_id']?.toString();
+      final itemsRaw = (data['items'] as List<dynamic>? ?? []);
+      final items = itemsRaw
+          .map(
+            (i) => CartItemView(
+              productId: i['product_id'].toString(),
+              title: i['title'] ?? '',
+              quantity: (i['quantity'] as num).toInt(),
+              unitPrice: (i['unit_price'] as num).toDouble(),
+            ),
+          )
+          .toList();
+      final total = (data['total'] is num)
+          ? (data['total'] as num).toDouble()
+          : double.tryParse(data['total']?.toString() ?? '0') ?? 0;
+      state = CartState(cartId: cartId, items: items, total: total);
+    } catch (_) {
+      // Fail closed: keep cart empty to avoid breaking the whole UI
       state = CartState.empty();
-      return;
     }
-    final cartId = data['cart_id']?.toString();
-    final itemsRaw = data['items'] as List<dynamic>? ?? [];
-    final items = itemsRaw
-        .map(
-          (i) => CartItemView(
-            productId: i['product_id'].toString(),
-            title: i['title'] ?? '',
-            quantity: (i['quantity'] as num).toInt(),
-            unitPrice: (i['unit_price'] as num).toDouble(),
-          ),
-        )
-        .toList();
-    final total = (data['total'] is num)
-        ? (data['total'] as num).toDouble()
-        : double.parse(data['total'].toString());
-    state = CartState(cartId: cartId, items: items, total: total);
   }
 
   Future<void> add(String productId, int quantity) async {
     final client = Supabase.instance.client;
-    final res = await client.rpc(
+    await client.rpc(
       'add_item_to_cart',
       params: {'p_product_id': productId, 'p_quantity': quantity},
     );
-    final dyn = res as dynamic;
-    if (dyn.error != null) throw dyn.error;
     await refresh();
   }
 
   Future<void> setQuantity(String productId, int quantity) async {
     final client = Supabase.instance.client;
-    final res = await client.rpc(
+    await client.rpc(
       'set_cart_item_quantity',
       params: {'p_product_id': productId, 'p_quantity': quantity},
     );
-    final dyn = res as dynamic;
-    if (dyn.error != null) throw dyn.error;
     await refresh();
   }
 
   Future<void> remove(String productId) async {
     final client = Supabase.instance.client;
-    final res = await client.rpc(
+    await client.rpc(
       'remove_item_from_cart',
       params: {'p_product_id': productId},
     );
-    final dyn = res as dynamic;
-    if (dyn.error != null) throw dyn.error;
     await refresh();
   }
 
   Future<String> placeOrder() async {
     final client = Supabase.instance.client;
-    final res = await client.rpc('place_order_from_cart');
-    final dyn = res as dynamic;
-    if (dyn.error != null) throw dyn.error;
-    final orderId = dyn.data as String;
+    final orderId = await client.rpc('place_order_from_cart') as String;
     await refresh();
     return orderId;
   }
