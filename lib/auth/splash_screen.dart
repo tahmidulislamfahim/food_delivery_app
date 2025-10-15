@@ -30,11 +30,11 @@ class _SplashScreenState extends State<SplashScreen> {
           children: <Widget>[
             const SizedBox(height: 20),
             const Text(
-              'Foodie',
+              'Foodcall',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
+                color: Colors.redAccent,
               ),
             ),
           ],
