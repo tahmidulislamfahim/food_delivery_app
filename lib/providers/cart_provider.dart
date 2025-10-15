@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:food_delivery_app/providers/supabase_provider.dart';
 
 class CartState {
   final String? cartId;
@@ -31,6 +32,9 @@ class CartNotifier extends StateNotifier<CartState> {
   CartNotifier() : super(CartState.empty()) {
     refresh();
   }
+
+  /// Public reload method used when auth changes
+  Future<void> reload() async => refresh();
 
   Future<void> refresh() async {
     try {
@@ -99,5 +103,10 @@ class CartNotifier extends StateNotifier<CartState> {
 }
 
 final cartProvider = StateNotifierProvider<CartNotifier, CartState>((ref) {
-  return CartNotifier();
+  final notifier = CartNotifier();
+  // Reload cart whenever auth/user changes
+  ref.listen<AsyncValue<User?>>(supabaseUserProvider, (prev, next) {
+    notifier.reload();
+  });
+  return notifier;
 });

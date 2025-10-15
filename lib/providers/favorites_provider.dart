@@ -1,16 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:food_delivery_app/models/product.dart';
+import 'package:food_delivery_app/providers/supabase_provider.dart';
 
 final favoritesProvider =
     StateNotifierProvider<FavoritesNotifier, AsyncValue<List<Product>>>((ref) {
-      return FavoritesNotifier();
+      final notifier = FavoritesNotifier();
+      // Reload favorites when auth/user changes
+      ref.listen<AsyncValue<User?>>(supabaseUserProvider, (prev, next) {
+        notifier.reload();
+      });
+      return notifier;
     });
 
 class FavoritesNotifier extends StateNotifier<AsyncValue<List<Product>>> {
   FavoritesNotifier() : super(const AsyncValue.loading()) {
     _load();
   }
+
+  /// Public reload used by provider to refresh when auth changes
+  Future<void> reload() async => _load();
 
   Future<void> _load() async {
     try {
@@ -21,10 +30,11 @@ class FavoritesNotifier extends StateNotifier<AsyncValue<List<Product>>> {
         state = const AsyncValue.data([]);
         return;
       }
-      final fdata = await client
-          .from('favorites')
-          .select('product_id')
-          .match({'user_id': userId}) as List<dynamic>;
+      final fdata =
+          await client.from('favorites').select('product_id').match({
+                'user_id': userId,
+              })
+              as List<dynamic>;
       final ids = fdata.map((e) => e['product_id'].toString()).toList();
       if (ids.isEmpty) {
         state = const AsyncValue.data([]);
@@ -32,11 +42,9 @@ class FavoritesNotifier extends StateNotifier<AsyncValue<List<Product>>> {
       }
       final products = <Product>[];
       for (final id in ids) {
-        final pdata = await client
-                .from('products')
-                .select()
-                .match({'id': id})
-                .limit(1) as List<dynamic>;
+        final pdata =
+            await client.from('products').select().match({'id': id}).limit(1)
+                as List<dynamic>;
         if (pdata.isEmpty) continue;
         final e = pdata.first;
         products.add(
@@ -69,17 +77,18 @@ class FavoritesNotifier extends StateNotifier<AsyncValue<List<Product>>> {
       if (userId == null) throw Exception('Not authenticated');
 
       // check existing
-      final items = await client
-              .from('favorites')
-              .select()
-              .match({'user_id': userId, 'product_id': product.id})
-          as List<dynamic>;
+      final items =
+          await client.from('favorites').select().match({
+                'user_id': userId,
+                'product_id': product.id,
+              })
+              as List<dynamic>;
       if (items.isNotEmpty) {
         // remove
-        await client
-            .from('favorites')
-            .delete()
-            .match({'user_id': userId, 'product_id': product.id});
+        await client.from('favorites').delete().match({
+          'user_id': userId,
+          'product_id': product.id,
+        });
       } else {
         // insert
         await client.from('favorites').insert({
