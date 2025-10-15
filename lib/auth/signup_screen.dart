@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_delivery_app/auth/login_screen.dart';
@@ -34,7 +36,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
     try {
       final auth = ref.read(authControllerProvider);
-      await auth.signUp(_email, _password, _name, _address, _phone);
+      // Add a timeout so the UI doesn't hang indefinitely if the network/backend
+      // doesn't respond. 15s is a reasonable default; adjust as needed.
+      await auth
+          .signUp(_email, _password, _name, _address, _phone)
+          .timeout(const Duration(seconds: 15));
+
+      // Debug log for developers
+      // ignore: avoid_print
+      print('Signup succeeded for $_email');
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -50,9 +60,16 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         );
       }
     } catch (error) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $error')));
+      // Distinguish timeout errors to provide clearer feedback
+      if (error is TimeoutException) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Request timed out. Please try again.')),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $error')));
+      }
     } finally {
       if (mounted) {
         setState(() {

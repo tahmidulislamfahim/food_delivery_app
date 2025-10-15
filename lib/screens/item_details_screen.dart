@@ -66,9 +66,21 @@ class _ItemDetailsScreenState extends ConsumerState<ItemDetailsScreen> {
           Container(
             height: 260,
             color: Colors.grey.shade200,
-            child: const Center(
-              child: Icon(Icons.image, size: 80, color: Colors.grey),
-            ),
+            child: widget.product.imageUrl != null
+                ? Image.network(
+                    widget.product.imageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const Center(
+                      child: Icon(
+                        Icons.broken_image,
+                        size: 80,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  )
+                : const Center(
+                    child: Icon(Icons.image, size: 80, color: Colors.grey),
+                  ),
           ),
           const SizedBox(height: 12),
           // Counter centered
@@ -200,7 +212,7 @@ class _ItemDetailsScreenState extends ConsumerState<ItemDetailsScreen> {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(vertical: 20),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -220,6 +232,7 @@ class _ItemDetailsScreenState extends ConsumerState<ItemDetailsScreen> {
               },
               child: Text(
                 'Add to cart - \$${(widget.product.price * _quantity).toStringAsFixed(2)}',
+                style: const TextStyle(fontSize: 18, color: Colors.white),
               ),
             ),
           ),

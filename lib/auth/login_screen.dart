@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:food_delivery_app/admin/admin_produts_screen.dart';
 import 'package:food_delivery_app/providers/auth_provider.dart';
 import 'package:food_delivery_app/auth/signup_screen.dart';
 import 'package:food_delivery_app/screens/tabs_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -32,10 +34,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final auth = ref.read(authControllerProvider);
       await auth.login(_email, _password);
 
-      if (mounted) {
-        Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (context) => const TabsScreen()));
+      final client = Supabase.instance.client;
+      final isAdmin = await client.rpc('is_current_user_admin');
+
+      if (!mounted) return;
+
+      if (isAdmin == true || isAdmin == 't' || isAdmin == 'true') {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const AdminProductsScreen()),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const TabsScreen()),
+        );
       }
     } catch (error) {
       ScaffoldMessenger.of(

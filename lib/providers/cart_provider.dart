@@ -14,12 +14,14 @@ class CartState {
 class CartItemView {
   final String productId;
   final String title;
+  final String? imageUrl;
   final int quantity;
   final double unitPrice;
 
   CartItemView({
     required this.productId,
     required this.title,
+    this.imageUrl,
     required this.quantity,
     required this.unitPrice,
   });
@@ -45,6 +47,7 @@ class CartNotifier extends StateNotifier<CartState> {
             (i) => CartItemView(
               productId: i['product_id'].toString(),
               title: i['title'] ?? '',
+              imageUrl: i['image_url'] as String?,
               quantity: (i['quantity'] as num).toInt(),
               unitPrice: (i['unit_price'] as num).toDouble(),
             ),

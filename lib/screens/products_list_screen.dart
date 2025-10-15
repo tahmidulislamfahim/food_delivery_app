@@ -31,7 +31,17 @@ class ProductsListScreen extends ConsumerWidget {
                     color: Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.image, color: Colors.grey),
+                  child: p.imageUrl != null
+                      ? Image.network(
+                          p.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                              ),
+                        )
+                      : const Icon(Icons.image, color: Colors.grey),
                 ),
                 title: Text(p.title),
                 subtitle: Text(p.subtitle),

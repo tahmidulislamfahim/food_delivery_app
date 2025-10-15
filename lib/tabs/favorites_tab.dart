@@ -13,40 +13,150 @@ class FavoritesTab extends ConsumerWidget {
       data: (favorites) {
         if (favorites.isEmpty) {
           return Center(
-            child: Text(
-              'No favorites yet',
-              style: TextStyle(color: Colors.grey.shade700),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.favorite_border,
+                  size: 70,
+                  color: Colors.orange.shade300,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No favorites yet',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Tap the heart icon on items to save them here.',
+                  style: TextStyle(color: Colors.grey.shade500),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
           );
         }
-        return ListView(
-          padding: const EdgeInsets.all(12),
-          children: favorites.map((product) {
-            return ListTile(
-              leading: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.image, color: Colors.grey),
-              ),
-              title: Text(product.title),
-              subtitle: Text(product.subtitle),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete_outline),
-                onPressed: () => ref
-                    .read(favoritesProvider.notifier)
-                    .toggleFavorite(product),
-              ),
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: favorites.length,
+          itemBuilder: (context, index) {
+            final product = favorites[index];
+            return GestureDetector(
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => ItemDetailsScreen(product: product),
                 ),
               ),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    // 🔸 Product Image
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(14),
+                        bottomLeft: Radius.circular(14),
+                      ),
+                      child: product.imageUrl != null
+                          ? Image.network(
+                              product.imageUrl!,
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                    width: 100,
+                                    height: 100,
+                                    color: Colors.grey.shade200,
+                                    child: const Icon(
+                                      Icons.broken_image,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                            )
+                          : Container(
+                              width: 100,
+                              height: 100,
+                              color: Colors.grey.shade200,
+                              child: const Icon(
+                                Icons.image,
+                                size: 40,
+                                color: Colors.grey,
+                              ),
+                            ),
+                    ),
+
+                    // 🔸 Product Details
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              product.title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              product.subtitle,
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 13,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '\$${product.price.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // 🔸 Delete Button
+                    IconButton(
+                      icon: Icon(
+                        Icons.delete_outline,
+                        color: Colors.grey.shade600,
+                      ),
+                      onPressed: () => ref
+                          .read(favoritesProvider.notifier)
+                          .toggleFavorite(product),
+                    ),
+                  ],
+                ),
+              ),
             );
-          }).toList(),
+          },
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),

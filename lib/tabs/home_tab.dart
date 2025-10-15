@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_delivery_app/screens/item_details_screen.dart';
 import 'package:food_delivery_app/providers/product_repository.dart';
+import 'package:food_delivery_app/providers/categories_provider.dart';
 import 'package:food_delivery_app/screens/products_list_screen.dart';
 import 'package:food_delivery_app/providers/tabs_provider.dart';
 
@@ -13,7 +14,7 @@ class HomeTab extends ConsumerStatefulWidget {
 }
 
 class _HomeTabState extends ConsumerState<HomeTab> {
-  String? _selectedCategory = 'Burger';
+  String? _selectedCategory;
 
   @override
   Widget build(BuildContext context) {
@@ -22,13 +23,24 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🔸 Promo Banner
+          // 🔸 Promo Banner (gradient background)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.orange.shade100,
-              borderRadius: BorderRadius.circular(16.0),
+              gradient: LinearGradient(
+                colors: [Colors.redAccent, Colors.orange.shade400],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.redAccent.withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Row(
               children: [
@@ -39,67 +51,92 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                       const Text(
                         'The Fastest In\nDelivery Food',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          height: 1.3,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.redAccent,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          elevation: 0,
                         ),
                         onPressed: () {
-                          // set selected tab to Cart (index 4 based on TabsScreen)
                           ref.read(selectedTabProvider.notifier).state = 4;
                         },
-                        child: const Text('Order Now'),
+                        child: const Text(
+                          'Order Now',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 16),
-                // Placeholder for illustration
+                // Placeholder image
                 Container(
-                  width: 80,
-                  height: 80,
-                  color: Colors.white,
-                  child: const Icon(
-                    Icons.fastfood,
-                    size: 40,
-                    color: Colors.grey,
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Image.asset(
+                    'assets/images/homepage_order_now.png',
+                    fit: BoxFit.contain,
                   ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
-          // Category selector (horizontal)
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildCategoryItem('All', _selectedCategory == null, () {
-                  setState(() => _selectedCategory = null);
-                }),
-                const SizedBox(width: 8),
-                _buildCategoryItem('Burger', _selectedCategory == 'Burger', () {
-                  setState(() => _selectedCategory = 'Burger');
-                }),
-                const SizedBox(width: 8),
-                _buildCategoryItem('Pizza', _selectedCategory == 'Pizza', () {
-                  setState(() => _selectedCategory = 'Pizza');
-                }),
-                const SizedBox(width: 8),
-                _buildCategoryItem('Drinks', _selectedCategory == 'Drinks', () {
-                  setState(() => _selectedCategory = 'Drinks');
-                }),
-              ],
-            ),
+          // 🔸 Category Selector
+          Consumer(
+            builder: (context, ref, _) {
+              final catsAsync = ref.watch(categoriesProvider);
+              return catsAsync.when(
+                data: (cats) {
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildCategoryItem(
+                          'All',
+                          _selectedCategory == null,
+                          () => setState(() => _selectedCategory = null),
+                        ),
+                        const SizedBox(width: 8),
+                        for (final c in cats) ...[
+                          _buildCategoryItem(
+                            c,
+                            _selectedCategory == c,
+                            () => setState(() => _selectedCategory = c),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                      ],
+                    ),
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (e, st) =>
+                    Center(child: Text('Error loading categories: $e')),
+              );
+            },
           ),
 
           const SizedBox(height: 24),
@@ -109,8 +146,8 @@ class _HomeTabState extends ConsumerState<HomeTab> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Popular Now',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                'Popular Now 🍔',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               GestureDetector(
                 onTap: () {
@@ -124,7 +161,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                 child: Text(
                   'View All →',
                   style: TextStyle(
-                    color: Colors.orange.shade700,
+                    color: Colors.redAccent.shade200,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -134,7 +171,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
 
           const SizedBox(height: 12),
 
-          // Products grid (2 columns)
+          // 🔸 Products Grid
           Consumer(
             builder: (context, ref, _) {
               final productsAsync = ref.watch(
@@ -142,10 +179,17 @@ class _HomeTabState extends ConsumerState<HomeTab> {
               );
               return productsAsync.when(
                 data: (products) {
-                  if (products.isEmpty)
-                    return const Center(
-                      child: Text('No items in this category'),
+                  if (products.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24.0),
+                      child: Center(
+                        child: Text(
+                          'No items in this category',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
                     );
+                  }
                   return GridView.builder(
                     padding: EdgeInsets.zero,
                     shrinkWrap: true,
@@ -153,8 +197,8 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
                           childAspectRatio: 0.72,
                         ),
                     itemCount: products.length,
@@ -170,6 +214,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                           title: product.title,
                           subtitle: product.subtitle,
                           price: product.price,
+                          imageUrl: product.imageUrl ?? '',
                         ),
                       );
                     },
@@ -197,13 +242,30 @@ class _HomeTabState extends ConsumerState<HomeTab> {
         decoration: BoxDecoration(
           color: selected ? Colors.redAccent : Colors.white,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(
+            color: selected ? Colors.redAccent : Colors.grey.shade300,
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: Colors.redAccent.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.08),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : Colors.black,
-            fontWeight: FontWeight.w500,
+            color: selected ? Colors.white : Colors.black87,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -214,50 +276,76 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     required String title,
     required String subtitle,
     required double price,
+    required String imageUrl,
   }) {
     return Container(
-      width: 160,
-      margin: const EdgeInsets.only(right: 16),
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Placeholder image
-          Container(
-            height: 100,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(12),
+          // Product image
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+            child: Image.network(
+              imageUrl,
+              height: 130,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                height: 130,
+                color: Colors.grey.shade200,
+                child: const Icon(Icons.broken_image, size: 40),
+              ),
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  height: 130,
+                  color: Colors.grey.shade200,
+                  child: const Center(child: CircularProgressIndicator()),
+                );
+              },
             ),
-            child: const Icon(Icons.image, size: 40, color: Colors.grey),
           ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-          Text(
-            subtitle,
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '\$${price.toStringAsFixed(2)}',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.redAccent,
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '\$${price.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.redAccent,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
