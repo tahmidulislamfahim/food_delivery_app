@@ -36,7 +36,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.redAccent.withOpacity(0.3),
+                  color: Colors.redAccent.withValues(alpha: 50),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -248,14 +248,14 @@ class _HomeTabState extends ConsumerState<HomeTab> {
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: Colors.redAccent.withOpacity(0.3),
+                    color: Colors.redAccent.withValues(alpha: 50),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
                 ]
               : [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.08),
+                    color: Colors.grey.withValues(alpha: 50),
                     blurRadius: 6,
                     offset: const Offset(0, 3),
                   ),
@@ -284,7 +284,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 50),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),

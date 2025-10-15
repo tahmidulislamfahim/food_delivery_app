@@ -85,7 +85,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.08),
+                            color: Colors.grey.withValues(alpha: 50),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),

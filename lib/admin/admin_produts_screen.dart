@@ -45,7 +45,8 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
   }
 
   Future<void> _delete(Map<String, dynamic> item) async {
-    final ok = await showDialog<bool>(
+    // Ask the admin for confirmation
+    final confirm = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
         title: const Text('Delete product'),
@@ -63,16 +64,19 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
       ),
     );
 
-    if (ok != true) return;
+    if (confirm != true) return;
 
     final client = Supabase.instance.client;
+
     try {
+      // Call the RPC; it now safely deletes the product and all related rows
       await client.rpc('delete_product', params: {'p_id': item['id']});
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Product deleted successfully')),
         );
-        await _load();
+        await _load(); // Refresh the product list
       }
     } catch (error) {
       if (mounted) {

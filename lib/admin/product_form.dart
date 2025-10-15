@@ -248,7 +248,7 @@ class _ProductFormState extends ConsumerState<ProductForm> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 DropdownButtonFormField<String>(
-                                  value:
+                                  initialValue:
                                       cats.contains(_category.text) &&
                                           _category.text.isNotEmpty
                                       ? _category.text
@@ -266,8 +266,9 @@ class _ProductFormState extends ConsumerState<ProductForm> {
                                     ),
                                   ],
                                   onChanged: (v) {
-                                    if (v != null)
+                                    if (v != null) {
                                       setState(() => _category.text = v);
+                                    }
                                   },
                                   decoration: const InputDecoration(
                                     labelText: 'Select category',

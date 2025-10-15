@@ -43,8 +43,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           .timeout(const Duration(seconds: 15));
 
       // Debug log for developers
-      // ignore: avoid_print
-      print('Signup succeeded for $_email');
+      // signup succeeded
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

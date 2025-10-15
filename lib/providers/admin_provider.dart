@@ -11,7 +11,7 @@ final isAdminProvider = FutureProvider<bool>((ref) async {
     if (result is String) return result == 't' || result == 'true';
     return false;
   } catch (e) {
-    print('Error checking admin: $e');
+    // Error checking admin: $e
     return false;
   }
 });

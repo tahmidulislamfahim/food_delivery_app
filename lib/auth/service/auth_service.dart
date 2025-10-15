@@ -14,8 +14,7 @@ class AuthService {
   ) async {
     try {
       // Debug log
-      // ignore: avoid_print
-      print('AuthService.signUp: starting signup for $email');
+      // starting signup for $email
 
       final response = await supabase.auth
           .signUp(
@@ -25,8 +24,7 @@ class AuthService {
           )
           .timeout(const Duration(seconds: 20));
 
-      // ignore: avoid_print
-      print('AuthService.signUp: supabase returned, user: ${response.user}');
+      // supabase returned, user processed
 
       if (response.user == null) {
         throw Exception('Signup failed: No user returned');
@@ -40,15 +38,13 @@ class AuthService {
 
   Future<void> login(String email, String password) async {
     try {
-      // ignore: avoid_print
-      print('AuthService.login: starting login for $email');
+      // starting login for $email
 
       final response = await supabase.auth
           .signInWithPassword(email: email, password: password)
           .timeout(const Duration(seconds: 20));
 
-      // ignore: avoid_print
-      print('AuthService.login: supabase returned, user: ${response.user}');
+      // supabase returned, user processed
 
       if (response.user == null) {
         throw Exception('Login failed: No user returned');
