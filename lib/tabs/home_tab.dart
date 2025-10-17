@@ -112,6 +112,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                 data: (cats) {
                   return SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
+                    // allow shadows to paint outside the scroll viewport
+                    clipBehavior: Clip.none,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
                     child: Row(
                       children: [
                         _buildCategoryItem(
@@ -238,28 +241,25 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         decoration: BoxDecoration(
           color: selected ? Colors.redAccent : Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(30),
           border: Border.all(
             color: selected ? Colors.redAccent : Colors.grey.shade300,
+            width: selected ? 0 : 1,
           ),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: Colors.redAccent.withValues(alpha: 50),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
-              : [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 50),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+          boxShadow: [
+            BoxShadow(
+              color: selected
+                  ? Colors.redAccent.withValues(alpha: 0.18)
+                  : Colors.black.withValues(alpha: 0.06),
+              blurRadius: selected ? 10 : 8,
+              spreadRadius: selected ? 0 : 0,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Text(
           label,
