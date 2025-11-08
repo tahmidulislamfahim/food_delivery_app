@@ -8,7 +8,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Foodly',
+      title: 'Foodcall',
       theme: ThemeData(primarySwatch: Colors.deepPurple),
       home: const SplashScreen(),
     );
