@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_delivery_app/models/product.dart';
 import 'package:food_delivery_app/providers/cart_provider.dart';
 import 'package:food_delivery_app/providers/favorites_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ItemDetailsScreen extends ConsumerStatefulWidget {
   final Product product;
@@ -15,6 +16,7 @@ class ItemDetailsScreen extends ConsumerStatefulWidget {
 
 class _ItemDetailsScreenState extends ConsumerState<ItemDetailsScreen> {
   int _quantity = 1;
+  bool _isAdding = false;
 
   void _increment() => setState(() => _quantity++);
   void _decrement() => setState(() {
@@ -83,7 +85,6 @@ class _ItemDetailsScreenState extends ConsumerState<ItemDetailsScreen> {
                   ),
           ),
           const SizedBox(height: 12),
-          // Counter centered
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Row(
@@ -130,11 +131,6 @@ class _ItemDetailsScreenState extends ConsumerState<ItemDetailsScreen> {
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.product.subtitle,
-                        style: TextStyle(color: Colors.grey.shade600),
                       ),
                     ],
                   ),
@@ -185,8 +181,8 @@ class _ItemDetailsScreenState extends ConsumerState<ItemDetailsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Delicious quality ingredients, freshly prepared. Contains beef, cheese, lettuce, and special sauce. High quality and flavorful.',
-                    style: TextStyle(color: Colors.grey.shade700),
+                    widget.product.subtitle,
+                    style: TextStyle(color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 12),
                   const Text(
@@ -217,25 +213,61 @@ class _ItemDetailsScreenState extends ConsumerState<ItemDetailsScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: () async {
-                // add to cart via Supabase-backed provider (pass product id)
-                await ref
-                    .read(cartProvider.notifier)
-                    .add(widget.product.id, _quantity);
-                final totalItems = ref
-                    .read(cartProvider)
-                    .items
-                    .fold<int>(0, (s, i) => s + i.quantity);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Added to cart ($totalItems items)')),
-                );
-              },
+              onPressed: _isAdding
+                  ? null
+                  : () async {
+                      setState(() => _isAdding = true);
+                      try {
+                        // ensure user is authenticated before calling RPC
+                        final user = Supabase.instance.client.auth.currentUser;
+                        if (user == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Please log in to add items to cart',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        // add to cart via Supabase-backed provider (pass product id)
+                        await ref
+                            .read(cartProvider.notifier)
+                            .add(widget.product.id, _quantity);
+
+                        final totalItems = ref
+                            .read(cartProvider)
+                            .items
+                            .fold<int>(0, (s, i) => s + i.quantity);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Added to cart ($totalItems items)'),
+                          ),
+                        );
+                      } catch (e, st) {
+                        // Show a friendly error and log to console
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to add to cart: $e'),
+                            ),
+                          );
+                        }
+                        // ignore: avoid_print
+                        print('add to cart error: $e\n$st');
+                      } finally {
+                        if (mounted) setState(() => _isAdding = false);
+                      }
+                    },
               child: Text(
                 'Add to cart - \$${(widget.product.price * _quantity).toStringAsFixed(2)}',
                 style: const TextStyle(fontSize: 18, color: Colors.white),
               ),
             ),
           ),
+          const SizedBox(height: 40),
         ],
       ),
     );
